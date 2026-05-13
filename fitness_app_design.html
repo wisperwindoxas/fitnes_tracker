@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sog'lom Hayot - Kaloriya Hisoblagich</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 80px; /* Menyu uchun joy */
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #45a049);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .total-calories {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        /* Container */
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        /* Forms */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button.delete-btn {
+            background-color: #ff4444;
+            padding: 5px 10px;
+            width: auto;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        /* Lists */
+        ul {
+            list-style: none;
+        }
+
+        li {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .calorie-badge {
+            background: var(--secondary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        /* Tips Section */
+        .tip-card {
+            border-left: 4px solid var(--secondary-color);
+            background: #fff8e1;
+        }
+        
+        .tip-card h3 {
+            color: #f57c00;
+            margin-bottom: 5px;
+        }
+
+        .tip-card p {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #555;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #999;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .nav-text {
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Sections Visibility */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .result-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Sog'lom Hayot</h1>
+        <div class="total-calories">
+            Bugungi farq: <span id="net-calories">0</span> kcal
+            <br><small>(Yo'qotilgan - Yeyilgan)</small>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- SECTION 1: MASHQLAR -->
+        <div id="workout-section" class="section active">
+            <div class="card">
+                <h2>🏃‍♂️ Mashq Qo'shish</h2>
+                <label>Mashq turini tanlang:</label>
+                <select id="exercise-type">
+                    <option value="0">-- Tanlang --</option>
+                    <option value="8">Yugurish (8 kcal/daq)</option>
+                    <option value="5">Yurish (5 kcal/daq)</option>
+                    <option value="6">Velosiped (6 kcal/daq)</option>
+                    <option value="7">Suzish (7 kcal/daq)</option>
+                    <option value="4">Yoga (4 kcal/daq)</option>
+                    <option value="10">Crossfit (10 kcal/daq)</option>
+                </select>
+
+                <label>Davomiyligi (daqiqada):</label>
+                <input type="number" id="exercise-duration" placeholder="Masalan: 30">
+
+                <button onclick="addWorkout()">Hisoblash va Qo'shish</button>
+                <div id="workout-result" class="result-box"></div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Bugungi Mashqlar</h2>
+                <ul id="workout-list">
+                    <!-- Ro'yxat shu yerga tushadi -->
+                </ul>
+                <p style="text-align: center; color: #777; margin-top: 10px;" id="no-workout-msg">Hali mashq qo'shilmadi</p>
+            </div>
+        </div>
+
+        <!-- SECTION 2: OVQATLAR -->
+        <div id="food-section" class="section">
+            <div class="card">
+                <h2>🍎 Ovqat Qo'shish</h2>
+                <label>Ovqat nomini tanlang:</label>
+                <select id="food-type">
+                    <option value="0">-- Tanlang --</option>
+                    <option value="50">Olma (1 dona ~50 kcal)</option>
+                    <option value="250">Bodringli Salat (1 porsiya ~250 kcal)</option>
+                    <option value="300">Toviq Go'shti (100g ~300 kcal)</option>
+                    <option value="400">Plov (1 porsiya ~400 kcal)</option>
+                    <option value="150">Non (1 bo'lak ~150 kcal)</option>
+                    <option value="120">Tuxum (1 dona ~120 kcal)</option>
+                    <option value="600">Fast Food Burger (1 dona ~600 kcal)</option>
+                </select>
+
+                <label>Miqdori (Porsiya/Dona):</label>
+                <input type="number" id="food-amount" placeholder="Masalan: 1" value="1">
+
+                <button onclick="addFood()" style="background-color: var(--secondary-color);">Hisoblash va Qo'shish</button>
+                <div id="food-result" class="result-box" style="background: #fff3e0; color: #ef6c00;"></div>
+            </div>
+
+            <div class="card">
+                <h2>🍽️ Bugungi Ovqatlar</h2>
+                <ul id="food-list">
+                    <!-- Ro'yxat shu yerga tushadi -->
+                </ul>
+                <p style="text-align: center; color: #777; margin-top: 10px;" id="no-food-msg">Hali ovqat qo'shilmadi</p>
+            </div>
+        </div>
+
+        <!-- SECTION 3: MASLAHATLAR -->
+        <div id="tips-section" class="section">
+            <div class="card tip-card">
+                <h3>💧 Suv Ichish Rejimi</h3>
+                <p>Kuniga kamida 2-2.5 litr suv iching. Ovqatdan 30 daqiqa oldin bir stakan suv ichish ishtahani tartibga solishga yordam beradi.</p>
+            </div>
+
+            <div class="card tip-card">
+                <h3>🥗 To'g'ri Ovqatlanish</h3>
+                <p>Ozish uchun shunchaki kam yemasluk, balki "to'g'ri" yemalik kerak. Oqsil (go'sht, tuxum) va tolali mahsulotlar (sabzavotlar) iste'molini oshiring.</p>
+            </div>
+
+            <div class="card tip-card">
+                <h3>😴 Uyqu Vaqti</h3>
+                <p>Sog'lom uyqu (7-8 soat) metabolizmni yaxshilaydi. Uxlamaslik ochlik gormonini oshirib, ortiqcha vazn yig'ilishiga sabab bo'ladi.</p>
+            </div>
+
+            <div class="card tip-card">
+                <h3>🚶 Faol Harakat</h3>
+                <p>Zalga borish shart emas. Kuniga 10,000 qadam yurish ham sog'lom bo'lish va kaloriya yo'qotish uchun ajoyib vositadir.</p>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Sizning Natijangiz</h2>
+                <p id="status-message" style="text-align: center; font-weight: bold; font-size: 1.1rem; margin-top: 10px;">
+                    Ma'lumot kiriting...
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM MENU -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('workout')">
+            <span class="nav-icon">🏃‍♂️</span>
+            <span class="nav-text">Mashqlar</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('food')">
+            <span class="nav-icon">🍎</span>
+            <span class="nav-text">Ovqat</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tips')">
+            <span class="nav-icon">💡</span>
+            <span class="nav-text">Maslahat</span>
+        </div>
+    </nav>
+
+    <script>
+        // State variables
+        let totalBurned = 0;
+        let totalConsumed = 0;
+
+        // Switch Tabs
+        function switchTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+            // Show selected
+            document.getElementById(tabName + '-section').classList.add('active');
+            
+            // Highlight nav
+            const navIndex = tabName === 'workout' ? 0 : tabName === 'food' ? 1 : 2;
+            document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
+        }
+
+        // Add Workout Logic
+        function addWorkout() {
+            const typeSelect = document.getElementById('exercise-type');
+            const durationInput = document.getElementById('exercise-duration');
+            const resultBox = document.getElementById('workout-result');
+            const list = document.getElementById('workout-list');
+            const noMsg = document.getElementById('no-workout-msg');
+
+            const calPerMin = parseInt(typeSelect.value);
+            const duration = parseInt(durationInput.value);
+            const exerciseName = typeSelect.options[typeSelect.selectedIndex].text.split('(')[0];
+
+            if (calPerMin === 0 || isNaN(duration) || duration <= 0) {
+                alert("Iltimos, to'g'ri mashq va vaqt kiriting!");
+                return;
+            }
+
+            const burned = calPerMin * duration;
+            totalBurned += burned;
+
+            // Add to list
+            noMsg.style.display = 'none';
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${exerciseName} (${duration} daq)</span>
+                <div>
+                    <span class="calorie-badge">-${burned} kcal</span>
+                    <button class="delete-btn" onclick="removeWorkout(this, ${burned})">X</button>
+                </div>
+            `;
+            list.appendChild(li);
+
+            // Show result animation
+            resultBox.style.display = 'block';
+            resultBox.innerText = `${burned} kcal yo'qotildi!`;
+            setTimeout(() => resultBox.style.display = 'none', 2000);
+
+            updateTotal();
+            durationInput.value = '';
+        }
+
+        // Remove Workout
+        function removeWorkout(btn, calories) {
+            btn.parentElement.parentElement.remove();
+            totalBurned -= calories;
+            if(document.getElementById('workout-list').children.length === 0) {
+                document.getElementById('no-workout-msg').style.display = 'block';
+            }
+            updateTotal();
+        }
+
+        // Add Food Logic
+        function addFood() {
+            const typeSelect = document.getElementById('food-type');
+            const amountInput = document.getElementById('food-amount');
+            const resultBox = document.getElementById('food-result');
+            const list = document.getElementById('food-list');
+            const noMsg = document.getElementById('no-food-msg');
+
+            const calPerUnit = parseInt(typeSelect.value);
+            const amount = parseFloat(amountInput.value);
+            const foodName = typeSelect.options[typeSelect.selectedIndex].text.split('(')[0];
+
+            if (calPerUnit === 0 || isNaN(amount) || amount <= 0) {
+                alert("Iltimos, to'g'ri ovqat va miqdor kiriting!");
+                return;
+            }
+
+            const consumed = Math.round(calPerUnit * amount);
+            totalConsumed += consumed;
+
+            // Add to list
+            noMsg.style.display = 'none';
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${foodName} (${amount} x)</span>
+                <div>
+                    <span class="calorie-badge" style="background:#ff4444">+${consumed} kcal</span>
+                    <button class="delete-btn" onclick="removeFood(this, ${consumed})">X</button>
+                </div>
+            `;
+            list.appendChild(li);
+
+            // Show result
+            resultBox.style.display = 'block';
+            resultBox.innerText = `${consumed} kcal qo'shildi!`;
+            setTimeout(() => resultBox.style.display = 'none', 2000);
+
+            updateTotal();
+            amountInput.value = '1';
+        }
+
+        // Remove Food
+        function removeFood(btn, calories) {
+            btn.parentElement.parentElement.remove();
+            totalConsumed -= calories;
+            if(document.getElementById('food-list').children.length === 0) {
+                document.getElementById('no-food-msg').style.display = 'block';
+            }
+            updateTotal();
+        }
+
+        // Update Totals and Give Advice
+        function updateTotal() {
+            const net = totalBurned - totalConsumed;
+            document.getElementById('net-calories').innerText = net;
+
+            const statusMsg = document.getElementById('status-message');
+            
+            if (net > 0) {
+                statusMsg.style.color = 'green';
+                statusMsg.innerText = `Ajoyib! Siz bugun ${net} kcal ortiqcha yo'qotdingiz. Ozish jarayoni ketmoqda! 🎉`;
+            } else if (net < 0) {
+                statusMsg.style.color = 'orange';
+                statusMsg.innerText = `Ehtiyot bo'ling! Siz ${Math.abs(net)} kcal ortiqcha oldingiz. Biroz harakatlanish kerak. 🏃‍♂️`;
+            } else {
+                statusMsg.style.color = '#333';
+                statusMsg.innerText = "Balans saqlandi. Lekin harakatlanish foydali!";
+            }
+        }
+    </script>
+</body>
+</html>
